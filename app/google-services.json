@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "916034007499",
+    "project_id": "incivisme-9417e",
+    "storage_bucket": "incivisme-9417e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:916034007499:android:e500cecda7bfd7ece0864e",
+        "android_client_info": {
+          "package_name": "org.ecaib.incivisme"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "916034007499-883tsf69bb436dpnhp0iqgqmql1uklc7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9BYPozdTyCF9mwOTUKK7OoqZAdGUtCRU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "916034007499-883tsf69bb436dpnhp0iqgqmql1uklc7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
