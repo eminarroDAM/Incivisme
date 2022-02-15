@@ -21,12 +21,14 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import org.ecaib.incivisme.Incidencia;
 import org.ecaib.incivisme.R;
+import org.ecaib.incivisme.SharedViewModel;
 import org.ecaib.incivisme.databinding.FragmentLlistatBinding;
 
 public class LlistatFragment extends Fragment {
 
     private LlistatViewModel llistatViewModel;
     private FragmentLlistatBinding binding;
+    private SharedViewModel shared_model;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -40,30 +42,38 @@ public class LlistatFragment extends Fragment {
         DatabaseReference base = FirebaseDatabase.getInstance("https://incivisme-9417e-default-rtdb.europe-west1.firebasedatabase.app").getReference();
 
         DatabaseReference users = base.child("users");
-        DatabaseReference uid = users.child(auth.getUid());
-        DatabaseReference incidencies = uid.child("incidencies");
+
+        shared_model = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
+        shared_model.getUser().observe(getViewLifecycleOwner(), user -> {
+            DatabaseReference uid = users.child(user.getUid());
+            DatabaseReference incidencies = uid.child("incidencies");
 
 
-        FirebaseListOptions<Incidencia> options = new FirebaseListOptions.Builder<Incidencia>()
-                .setQuery(incidencies, Incidencia.class)
-                .setLayout(R.layout.incidencia)
-                .setLifecycleOwner(this)
-                .build();
 
 
-        FirebaseListAdapter<Incidencia> adapter = new FirebaseListAdapter<Incidencia>(options) {
-            @Override
-            protected void populateView(View v, Incidencia model, int position) {
-                TextView txtDescripcio = v.findViewById(R.id.txtDescripcio);
-                TextView txtAdreca = v.findViewById(R.id.txtAdreca);
 
-                txtDescripcio.setText(model.getProblema());
-                txtAdreca.setText(model.getDireccio());
-            }
-        };
+            FirebaseListOptions<Incidencia> options = new FirebaseListOptions.Builder<Incidencia>()
+                    .setQuery(incidencies, Incidencia.class)
+                    .setLayout(R.layout.incidencia)
+                    .setLifecycleOwner(this)
+                    .build();
 
-        ListView lvIncidencies = view.findViewById(R.id.lvIncidencies);
-        lvIncidencies.setAdapter(adapter);
+
+            FirebaseListAdapter<Incidencia> adapter = new FirebaseListAdapter<Incidencia>(options) {
+                @Override
+                protected void populateView(View v, Incidencia model, int position) {
+                    TextView txtDescripcio = v.findViewById(R.id.txtDescripcio);
+                    TextView txtAdreca = v.findViewById(R.id.txtAdreca);
+
+                    txtDescripcio.setText(model.getProblema());
+                    txtAdreca.setText(model.getDireccio());
+                }
+            };
+
+            ListView lvIncidencies = view.findViewById(R.id.lvIncidencies);
+            lvIncidencies.setAdapter(adapter);
+        });
+
         return view;
     }
 

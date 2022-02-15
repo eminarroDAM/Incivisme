@@ -118,26 +118,7 @@ public class NotificationsFragment extends Fragment {
 
         model.switchTrackingLocation();
 
-        buttonNotificar.setOnClickListener(button -> {
-            Incidencia incidencia = new Incidencia();
-            incidencia.setDireccio(txtDireccio.getText().toString());
-            incidencia.setLatitud(txtLatitud.getText().toString());
-            incidencia.setLongitud(txtLongitud.getText().toString());
-            incidencia.setProblema(txtDescripcio.getText().toString());
 
-            FirebaseAuth auth = FirebaseAuth.getInstance();
-            DatabaseReference base = FirebaseDatabase.getInstance("https://incivisme-9417e-default-rtdb.europe-west1.firebasedatabase.app" +
-                    "").getReference();
-
-            DatabaseReference users = base.child("users");
-            DatabaseReference uid = users.child(auth.getUid());
-            DatabaseReference incidencies = uid.child("incidencies");
-            DatabaseReference reference = incidencies.push();
-            reference.setValue(incidencia);
-
-
-            Toast.makeText(getContext(), "Avís donat", Toast.LENGTH_SHORT).show();
-        });
 
         return root;
     }
@@ -267,6 +248,33 @@ public class NotificationsFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        buttonNotificar.setOnClickListener(button -> {
+            Incidencia incidencia = new Incidencia();
+            incidencia.setDireccio(txtDireccio.getText().toString());
+            incidencia.setLatitud(txtLatitud.getText().toString());
+            incidencia.setLongitud(txtLongitud.getText().toString());
+            incidencia.setProblema(txtDescripcio.getText().toString());
+
+
+            DatabaseReference base = FirebaseDatabase.getInstance("https://incivisme-9417e-default-rtdb.europe-west1.firebasedatabase.app" +
+                    "").getReference();
+
+            DatabaseReference users = base.child("users");
+
+            model.getUser().observe(getViewLifecycleOwner(), user -> {
+                DatabaseReference uid = users.child(user.getUid());
+                DatabaseReference incidencies = uid.child("incidencies");
+                DatabaseReference reference = incidencies.push();
+                reference.setValue(incidencia);
+                Toast.makeText(getContext(), "Avís donat", Toast.LENGTH_SHORT).show();
+            });
+
+
+
+        });
+
+
 
 
     }

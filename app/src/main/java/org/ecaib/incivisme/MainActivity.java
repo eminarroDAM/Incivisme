@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
@@ -137,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
+        Log.e("XXXX", String.valueOf(auth.getCurrentUser()));
         if (auth.getCurrentUser() == null) {
             // Choose authentication providers
             startActivityForResult(
