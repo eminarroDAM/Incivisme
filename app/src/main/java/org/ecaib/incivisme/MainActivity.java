@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
@@ -68,11 +67,6 @@ public class MainActivity extends AppCompatActivity {
 
 
         setContentView(R.layout.activity_main);
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.container, NotificationsFragment.newInstance())
-                    .commitNow();
-        }
 
         BottomNavigationView nav = findViewById(R.id.nav_view);
         nav.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
@@ -143,7 +137,6 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
-        Log.e("XXXX", String.valueOf(auth.getCurrentUser()));
         if (auth.getCurrentUser() == null) {
             // Choose authentication providers
             startActivityForResult(

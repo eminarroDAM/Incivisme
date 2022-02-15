@@ -63,10 +63,10 @@ public class NotificationsFragment extends Fragment {
     private Button buttonNotificar;
     private SharedViewModel model;
 
-
     public static NotificationsFragment newInstance() {
         return new NotificationsFragment();
     }
+
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -126,14 +126,15 @@ public class NotificationsFragment extends Fragment {
             incidencia.setProblema(txtDescripcio.getText().toString());
 
             FirebaseAuth auth = FirebaseAuth.getInstance();
-            DatabaseReference base = FirebaseDatabase.getInstance().getReference();
+            DatabaseReference base = FirebaseDatabase.getInstance("https://incivisme-9417e-default-rtdb.europe-west1.firebasedatabase.app" +
+                    "").getReference();
 
             DatabaseReference users = base.child("users");
             DatabaseReference uid = users.child(auth.getUid());
             DatabaseReference incidencies = uid.child("incidencies");
-
             DatabaseReference reference = incidencies.push();
             reference.setValue(incidencia);
+
 
             Toast.makeText(getContext(), "Avís donat", Toast.LENGTH_SHORT).show();
         });
@@ -266,17 +267,6 @@ public class NotificationsFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
-        DatabaseReference base = FirebaseDatabase.getInstance().getReference();
-        DatabaseReference users = base.child("users");
-
-        model = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
-        model.getUser().observe(getViewLifecycleOwner(), user -> {
-            DatabaseReference uid = users.child(user.getUid());
-            DatabaseReference incidencies = uid.child("incidencies");
-
-
-        });
 
 
     }
