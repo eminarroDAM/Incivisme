@@ -50,7 +50,7 @@ public class NotificationsFragment extends Fragment {
 
     private static final int REQUEST_LOCATION_PERMISSION = 1;
     private NotificationsViewModel notificationsViewModel;
-    private FragmentNotificationsBinding binding;
+    private static FragmentNotificationsBinding binding;
     private FusedLocationProviderClient mFusedLocationClient;
     private ProgressBar mLoading;
     private boolean mTrackingLocation;
@@ -75,7 +75,6 @@ public class NotificationsFragment extends Fragment {
 
         binding = FragmentNotificationsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
-
 
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext());

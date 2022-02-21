@@ -23,6 +23,7 @@ import org.ecaib.incivisme.Incidencia;
 import org.ecaib.incivisme.R;
 import org.ecaib.incivisme.SharedViewModel;
 import org.ecaib.incivisme.databinding.FragmentLlistatBinding;
+import org.ecaib.incivisme.ui.notifications.NotificationsFragment;
 
 public class LlistatFragment extends Fragment {
 
@@ -34,6 +35,7 @@ public class LlistatFragment extends Fragment {
                              ViewGroup container, Bundle savedInstanceState) {
         llistatViewModel =
                 new ViewModelProvider(this).get(LlistatViewModel.class);
+
 
         binding = FragmentLlistatBinding.inflate(inflater, container, false);
         View view = binding.getRoot();
