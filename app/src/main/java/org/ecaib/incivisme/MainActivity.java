@@ -152,18 +152,15 @@ public class MainActivity extends AppCompatActivity {
                             )
                             .build(),
                     RC_SIGN_IN);
+        } else {
+            model.setUser(auth.getCurrentUser());
         }
-
-
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
         if (requestCode == RC_SIGN_IN) {
-            IdpResponse response = IdpResponse.fromResultIntent(data);
-
             if (resultCode == RESULT_OK) {
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                 model.setUser(user);

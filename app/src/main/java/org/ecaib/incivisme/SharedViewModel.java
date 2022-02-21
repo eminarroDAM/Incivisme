@@ -34,6 +34,7 @@ public class SharedViewModel extends AndroidViewModel {
     private final MutableLiveData<String> buttonText = new MutableLiveData<>();
     private final MutableLiveData<Boolean> progressBar = new MutableLiveData<>();
     private final MutableLiveData<LatLng> currentLatLng = new MutableLiveData<>();
+    private MutableLiveData<FirebaseUser> user;
 
     private boolean mTrackingLocation;
     FusedLocationProviderClient mFusedLocationClient;
@@ -116,7 +117,7 @@ public class SharedViewModel extends AndroidViewModel {
 
     private void stopTrackingLocation() {
         if (mTrackingLocation) {
-            mFusedLocationClient.removeLocationUpdates (mLocationCallback);
+            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
             mTrackingLocation = false;
             progressBar.postValue(false);
             buttonText.setValue("Comença a seguir la ubicació");
@@ -189,9 +190,10 @@ public class SharedViewModel extends AndroidViewModel {
         }
     }
 
-    private MutableLiveData<FirebaseUser> user;
+
 
     public LiveData<FirebaseUser> getUser() {
+        //Log.e("USER IN MODEL", user.getValue().getUid());
         if (user == null) {
             user = new MutableLiveData<>();
         }
