@@ -21,6 +21,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -181,6 +182,7 @@ public class MapaFragment extends Fragment {
 
             tvProblema.setText(incidencia.getProblema());
             tvDescripcio.setText(incidencia.getDireccio());
+            Glide.with(activity).load(incidencia.getUrl()).into(ivProblema);
 
             return view;
         }

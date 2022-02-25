@@ -44,6 +44,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import org.ecaib.incivisme.Incidencia;
 import org.ecaib.incivisme.R;
@@ -57,6 +60,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public class NotificationsFragment extends Fragment {
 
@@ -77,10 +81,13 @@ public class NotificationsFragment extends Fragment {
     public FirebaseUser usuario;
     Incidencia incidencia;
 
-    String mCurrentPhotoPath;
+    private String mCurrentPhotoPath;
     private Uri photoURI;
     private ImageView foto;
     static final int REQUEST_TAKE_PHOTO = 1;
+
+    private String downloadUrl;
+    private StorageReference storageRef;
 
     public static NotificationsFragment newInstance() {
         return new NotificationsFragment();
@@ -161,33 +168,58 @@ public class NotificationsFragment extends Fragment {
 
         buttonFoto.setOnClickListener(button -> {
             dispatchTakePictureIntent();
+
+            FirebaseStorage storage = FirebaseStorage.getInstance("gs://incivisme-9417e.appspot.com");
+            storageRef = storage.getReference();
+
+            if(mCurrentPhotoPath==null){
+                Log.e("PHOTOPATH", "mCurrentPhotoPath is null");
+            }
+
+            StorageReference imageRef = storageRef.child(mCurrentPhotoPath);
+            UploadTask uploadTask = imageRef.putFile(photoURI);
+
+            uploadTask.addOnSuccessListener(taskSnapshot -> {
+                imageRef.getDownloadUrl().addOnCompleteListener(task -> {
+                    Uri downloadUri = task.getResult();
+                    Glide.with(this).load(downloadUri).into(foto);
+
+                    downloadUrl = downloadUri.toString();
+                });
+            });
         });
 
         model.getUser().observe(getViewLifecycleOwner(), user -> {
             usuario = user;
+
+            buttonNotificar.setOnClickListener(button -> {
+                incidencia = new Incidencia();
+                incidencia.setDireccio(txtDireccio.getText().toString());
+                incidencia.setLatitud(txtLatitud.getText().toString());
+                incidencia.setLongitud(txtLongitud.getText().toString());
+                incidencia.setProblema(txtDescripcio.getText().toString());
+                incidencia.setUrl(downloadUrl);
+
+
+
+                DatabaseReference base = FirebaseDatabase.getInstance("https://incivisme-9417e-default-rtdb.europe-west1.firebasedatabase.app" +
+                        "").getReference();
+
+                DatabaseReference users = base.child("users");
+
+                DatabaseReference uid = users.child(usuario.getUid());
+                DatabaseReference incidencies = uid.child("incidencies");
+                DatabaseReference reference = incidencies.push();
+                reference.setValue(incidencia);
+                Toast.makeText(getContext(), "Avís donat", Toast.LENGTH_SHORT).show();
+
+            });
         });
 
-        buttonNotificar.setOnClickListener(button -> {
-            incidencia = new Incidencia();
-            incidencia.setDireccio(txtDireccio.getText().toString());
-            incidencia.setLatitud(txtLatitud.getText().toString());
-            incidencia.setLongitud(txtLongitud.getText().toString());
-            incidencia.setProblema(txtDescripcio.getText().toString());
 
 
-            DatabaseReference base = FirebaseDatabase.getInstance("https://incivisme-9417e-default-rtdb.europe-west1.firebasedatabase.app" +
-                    "").getReference();
 
-            DatabaseReference users = base.child("users");
-
-            DatabaseReference uid = users.child(usuario.getUid());
-            DatabaseReference incidencies = uid.child("incidencies");
-            DatabaseReference reference = incidencies.push();
-            reference.setValue(incidencia);
-            Toast.makeText(getContext(), "Avís donat", Toast.LENGTH_SHORT).show();
-
-        });
-
+        
         model.switchTrackingLocation();
 
 
@@ -320,12 +352,16 @@ public class NotificationsFragment extends Fragment {
     private File createImageFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File storageDir = Objects.requireNonNull(getContext()).getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
                 imageFileName,
                 ".jpg",
                 storageDir
         );
+
+        if(image!=null){
+            Log.e("IMAGE", image.getAbsolutePath());
+        }
 
         mCurrentPhotoPath = image.getAbsolutePath();
         return image;
@@ -364,4 +400,8 @@ public class NotificationsFragment extends Fragment {
             }
         }
     }
+
+
+
+
 }
