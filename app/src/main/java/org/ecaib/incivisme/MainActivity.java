@@ -138,7 +138,6 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
-        Log.e("XXXX", String.valueOf(auth.getCurrentUser()));
         if (auth.getCurrentUser() == null) {
             // Choose authentication providers
             startActivityForResult(
@@ -164,6 +163,7 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                 model.setUser(user);
+                Log.e("USUARIO", user.getUid());
             }
         }
     }

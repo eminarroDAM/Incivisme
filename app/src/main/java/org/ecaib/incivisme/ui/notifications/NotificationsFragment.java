@@ -33,6 +33,7 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -62,6 +63,8 @@ public class NotificationsFragment extends Fragment {
 
     private Button buttonNotificar;
     private SharedViewModel model;
+    public FirebaseUser usuario;
+    Incidencia incidencia;
 
     public static NotificationsFragment newInstance() {
         return new NotificationsFragment();
@@ -135,6 +138,31 @@ public class NotificationsFragment extends Fragment {
                 reference.setValue(incidencia);
                 Toast.makeText(getContext(), "Avís donat", Toast.LENGTH_SHORT).show();
             });
+        });
+
+        model.getUser().observe(getViewLifecycleOwner(), user -> {
+            usuario = user;
+        });
+
+        buttonNotificar.setOnClickListener(button -> {
+            incidencia = new Incidencia();
+            incidencia.setDireccio(txtDireccio.getText().toString());
+            incidencia.setLatitud(txtLatitud.getText().toString());
+            incidencia.setLongitud(txtLongitud.getText().toString());
+            incidencia.setProblema(txtDescripcio.getText().toString());
+
+
+            DatabaseReference base = FirebaseDatabase.getInstance("https://incivisme-9417e-default-rtdb.europe-west1.firebasedatabase.app" +
+                    "").getReference();
+
+            DatabaseReference users = base.child("users");
+
+            DatabaseReference uid = users.child(usuario.getUid());
+            DatabaseReference incidencies = uid.child("incidencies");
+            DatabaseReference reference = incidencies.push();
+            reference.setValue(incidencia);
+            Toast.makeText(getContext(), "Avís donat", Toast.LENGTH_SHORT).show();
+
         });
 
         model.switchTrackingLocation();
