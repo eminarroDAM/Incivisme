@@ -1,19 +1,25 @@
 package org.ecaib.incivisme.ui.notifications;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,11 +27,13 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -42,8 +50,11 @@ import org.ecaib.incivisme.R;
 import org.ecaib.incivisme.SharedViewModel;
 import org.ecaib.incivisme.databinding.FragmentNotificationsBinding;
 
+import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -65,6 +76,11 @@ public class NotificationsFragment extends Fragment {
     private SharedViewModel model;
     public FirebaseUser usuario;
     Incidencia incidencia;
+
+    String mCurrentPhotoPath;
+    private Uri photoURI;
+    private ImageView foto;
+    static final int REQUEST_TAKE_PHOTO = 1;
 
     public static NotificationsFragment newInstance() {
         return new NotificationsFragment();
@@ -138,6 +154,13 @@ public class NotificationsFragment extends Fragment {
                 reference.setValue(incidencia);
                 Toast.makeText(getContext(), "Avís donat", Toast.LENGTH_SHORT).show();
             });
+        });
+
+        foto = root.findViewById(R.id.foto);
+        Button buttonFoto = root.findViewById(R.id.button_foto);
+
+        buttonFoto.setOnClickListener(button -> {
+            dispatchTakePictureIntent();
         });
 
         model.getUser().observe(getViewLifecycleOwner(), user -> {
@@ -292,5 +315,53 @@ public class NotificationsFragment extends Fragment {
         locationRequest.setFastestInterval(5000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         return locationRequest;
+    }
+
+    private File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,
+                ".jpg",
+                storageDir
+        );
+
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(
+                getContext().getPackageManager()) != null) {
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                Log.e("PictureIntentError", ex.toString());
+            }
+
+            if (photoFile != null) {
+                photoURI = FileProvider.getUriForFile(getContext(),
+                        "com.example.android.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+            }
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_TAKE_PHOTO) {
+            if (resultCode == Activity.RESULT_OK) {
+                Glide.with(this).load(photoURI).into(foto);
+            } else {
+                Toast.makeText(getContext(),
+                        "Picture wasn't taken!", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }
