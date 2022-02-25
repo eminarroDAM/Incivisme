@@ -1,11 +1,14 @@
 package org.ecaib.incivisme.ui.mapa;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,8 +21,11 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -48,7 +54,8 @@ public class MapaFragment extends Fragment {
         View root = binding.getRoot();
 
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
-                .findFragmentById(R.id.map);
+            .findFragmentById(R.id.map);
+
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         DatabaseReference base = FirebaseDatabase.getInstance().getReference();
@@ -85,10 +92,29 @@ public class MapaFragment extends Fragment {
                             Double.valueOf(incidencia.getLongitud())
                     );
 
-                    map.addMarker(new MarkerOptions()
+                    IncidenciesInfoWindowAdapter customInfoWindow = new IncidenciesInfoWindowAdapter(
+                            getActivity()
+                    );
+
+
+                    Marker marker = map.addMarker(new MarkerOptions()
                             .title(incidencia.getProblema())
                             .snippet(incidencia.getDireccio())
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                             .position(aux));
+                    marker.setTag(incidencia);
+                    map.setInfoWindowAdapter(customInfoWindow);
+
+                    /*
+                    map.addMarker(new MarkerOptions()
+
+                            .title(incidencia.getProblema())
+                            .snippet(incidencia.getDireccio())
+                            .position(aux)
+                            .icon(BitmapDescriptorFactory.defaultMarker
+                                    (BitmapDescriptorFactory.HUE_GREEN)));
+
+                     */
                 }
 
                 @Override
@@ -111,6 +137,36 @@ public class MapaFragment extends Fragment {
 
 
         return root;
+    }
+
+    public class IncidenciesInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
+        private final Activity activity;
+
+        public IncidenciesInfoWindowAdapter(Activity activity) {
+            this.activity = activity;
+        }
+
+        @Override
+        public View getInfoWindow(Marker marker) {
+            return null;
+        }
+
+        @Override
+        public View getInfoContents(Marker marker) {
+            View view = activity.getLayoutInflater()
+                    .inflate(R.layout.infoview, null);
+
+            Incidencia incidencia = (Incidencia) marker.getTag();
+
+            ImageView ivProblema = view.findViewById(R.id.iv_problema);
+            TextView tvProblema = view.findViewById(R.id.tvProblema);
+            TextView tvDescripcio = view.findViewById(R.id.tvDescripcio);
+
+            tvProblema.setText(incidencia.getProblema());
+            tvDescripcio.setText(incidencia.getDireccio());
+
+            return view;
+        }
     }
 
     @Override
