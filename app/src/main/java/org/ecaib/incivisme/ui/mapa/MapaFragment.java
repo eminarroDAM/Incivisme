@@ -3,7 +3,9 @@ package org.ecaib.incivisme.ui.mapa;
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +27,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
@@ -115,6 +118,20 @@ public class MapaFragment extends Fragment {
                                     (BitmapDescriptorFactory.HUE_GREEN)));
 
                      */
+
+                    try {
+                        // Customize the styling of the base map using a JSON object defined
+                        // in a raw resource file.
+                        boolean success = map.setMapStyle(
+                                MapStyleOptions.loadRawResourceStyle(
+                                        getActivity(), R.raw.map_style));
+
+                        if (!success) {
+                            Log.e(null, "Style parsing failed.");
+                        }
+                    } catch (Resources.NotFoundException e) {
+                        Log.e(null, "Can't find style. Error: ", e);
+                    }
                 }
 
                 @Override
