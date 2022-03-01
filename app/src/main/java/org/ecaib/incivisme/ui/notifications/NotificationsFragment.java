@@ -78,7 +78,6 @@ public class NotificationsFragment extends Fragment {
 
     private Button buttonNotificar;
     private SharedViewModel model;
-    public FirebaseUser usuario;
     Incidencia incidencia;
 
     private String mCurrentPhotoPath;
@@ -141,28 +140,6 @@ public class NotificationsFragment extends Fragment {
                 mLoading.setVisibility(ProgressBar.INVISIBLE);
         });
 
-        model.getUser().observe(getViewLifecycleOwner(), user -> {
-            buttonNotificar.setOnClickListener(button -> {
-                Incidencia incidencia = new Incidencia();
-                incidencia.setDireccio(txtDireccio.getText().toString());
-                incidencia.setLatitud(txtLatitud.getText().toString());
-                incidencia.setLongitud(txtLongitud.getText().toString());
-                incidencia.setProblema(txtDescripcio.getText().toString());
-
-
-                DatabaseReference base = FirebaseDatabase.getInstance("https://incivisme-9417e-default-rtdb.europe-west1.firebasedatabase.app" +
-                        "").getReference();
-
-                DatabaseReference users = base.child("users");
-
-                DatabaseReference uid = users.child(user.getUid());
-                DatabaseReference incidencies = uid.child("incidencies");
-                DatabaseReference reference = incidencies.push();
-                reference.setValue(incidencia);
-                Toast.makeText(getContext(), "Avís donat", Toast.LENGTH_SHORT).show();
-            });
-        });
-
         foto = root.findViewById(R.id.foto);
         Button buttonFoto = root.findViewById(R.id.button_foto);
 
@@ -190,7 +167,6 @@ public class NotificationsFragment extends Fragment {
         });
 
         model.getUser().observe(getViewLifecycleOwner(), user -> {
-            usuario = user;
 
             buttonNotificar.setOnClickListener(button -> {
                 incidencia = new Incidencia();
@@ -207,7 +183,7 @@ public class NotificationsFragment extends Fragment {
 
                 DatabaseReference users = base.child("users");
 
-                DatabaseReference uid = users.child(usuario.getUid());
+                DatabaseReference uid = users.child(user.getUid());
                 DatabaseReference incidencies = uid.child("incidencies");
                 DatabaseReference reference = incidencies.push();
                 reference.setValue(incidencia);

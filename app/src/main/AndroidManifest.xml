@@ -21,6 +21,9 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAxQ3_AQqPQqGW76nYTfmgzTrrcOrHwiA4"/>
+            <!-- android:value="@string/google_api_key" -->
+
+
 
         <meta-data
             android:name="com.google.android.gms.version"
@@ -44,7 +47,7 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"></meta-data>
+                android:resource="@xml/file_paths" />
         </provider>
     </application>
 

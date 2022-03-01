@@ -32,6 +32,7 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -39,6 +40,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import org.ecaib.incivisme.Incidencia;
+import org.ecaib.incivisme.IncidenciesInfoWindowAdapter;
 import org.ecaib.incivisme.R;
 import org.ecaib.incivisme.SharedViewModel;
 import org.ecaib.incivisme.databinding.FragmentMapaBinding;
@@ -46,8 +48,10 @@ import org.ecaib.incivisme.databinding.FragmentMapaBinding;
 public class MapaFragment extends Fragment {
 
     private MapaViewModel mapaViewModel;
+    private SharedViewModel model;
     private FragmentMapaBinding binding;
     private static final int REQUEST_LOCATION_PERMISSION = 1;
+
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -57,136 +61,110 @@ public class MapaFragment extends Fragment {
         binding = FragmentMapaBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
+        model = ViewModelProviders.of(getActivity()).get(SharedViewModel.class);
+
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
             .findFragmentById(R.id.map);
 
+        model.getUser().observe(getViewLifecycleOwner(), user -> {
+            DatabaseReference base = FirebaseDatabase.getInstance().getReference();
 
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        DatabaseReference base = FirebaseDatabase.getInstance().getReference();
+            DatabaseReference users = base.child("users");
+            DatabaseReference uid = users.child(user.getUid());
+            DatabaseReference incidencies = uid.child("incidencies");
 
-        DatabaseReference users = base.child("users");
-        DatabaseReference uid = users.child(auth.getUid());
-        DatabaseReference incidencies = uid.child("incidencies");
+            mapFragment.getMapAsync(map -> {
+                if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(requireActivity(), new String[]
+                                    {Manifest.permission.ACCESS_FINE_LOCATION},
+                            REQUEST_LOCATION_PERMISSION);
+                }
+                map.setMyLocationEnabled(true);
 
-        SharedViewModel model = ViewModelProviders.of(getActivity()).get(SharedViewModel.class);
+                MutableLiveData<LatLng> currentLatLng = model.getCurrentLatLng();
+                LifecycleOwner owner = getViewLifecycleOwner();
+                currentLatLng.observe(owner, latLng -> {
+                    CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 15);
+                    map.animateCamera(cameraUpdate);
+                    currentLatLng.removeObservers(owner);
+                });
 
-        mapFragment.getMapAsync(map -> {
-            if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(requireActivity(), new String[]
-                                {Manifest.permission.ACCESS_FINE_LOCATION},
-                        REQUEST_LOCATION_PERMISSION);
-            }
-            map.setMyLocationEnabled(true);
+                incidencies.addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                        Incidencia incidencia = dataSnapshot.getValue(Incidencia.class);
 
-            MutableLiveData<LatLng> currentLatLng = model.getCurrentLatLng();
-            LifecycleOwner owner = getViewLifecycleOwner();
-            currentLatLng.observe(owner, latLng -> {
-                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 15);
-                map.animateCamera(cameraUpdate);
-                currentLatLng.removeObservers(owner);
-            });
+                        LatLng aux = new LatLng(
+                                Double.valueOf(incidencia.getLatitud()),
+                                Double.valueOf(incidencia.getLongitud())
+                        );
 
-            incidencies.addChildEventListener(new ChildEventListener() {
-                @Override
-                public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                    Incidencia incidencia = dataSnapshot.getValue(Incidencia.class);
-
-                    LatLng aux = new LatLng(
-                            Double.valueOf(incidencia.getLatitud()),
-                            Double.valueOf(incidencia.getLongitud())
-                    );
-
-                    IncidenciesInfoWindowAdapter customInfoWindow = new IncidenciesInfoWindowAdapter(
-                            getActivity()
-                    );
+                        IncidenciesInfoWindowAdapter customInfoWindow = new IncidenciesInfoWindowAdapter(
+                                getActivity()
+                        );
 
 
-                    Marker marker = map.addMarker(new MarkerOptions()
-                            .title(incidencia.getProblema())
-                            .snippet(incidencia.getDireccio())
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                            .position(aux));
-                    marker.setTag(incidencia);
-                    map.setInfoWindowAdapter(customInfoWindow);
+                        Marker marker = map.addMarker(new MarkerOptions()
+                                .title(incidencia.getProblema())
+                                .snippet(incidencia.getDireccio())
+                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                                .position(aux));
+                        //marker.setTag(incidencia);
+                        map.setInfoWindowAdapter(customInfoWindow);
 
-                    /*
-                    map.addMarker(new MarkerOptions()
 
-                            .title(incidencia.getProblema())
-                            .snippet(incidencia.getDireccio())
-                            .position(aux)
-                            .icon(BitmapDescriptorFactory.defaultMarker
-                                    (BitmapDescriptorFactory.HUE_GREEN)));
 
-                     */
+                        /*
+                        map.addMarker(new MarkerOptions()
 
-                    try {
-                        // Customize the styling of the base map using a JSON object defined
-                        // in a raw resource file.
-                        boolean success = map.setMapStyle(
-                                MapStyleOptions.loadRawResourceStyle(
-                                        getActivity(), R.raw.map_style));
+                                .title(incidencia.getProblema())
+                                .snippet(incidencia.getDireccio())
+                                .position(aux)
+                                .icon(BitmapDescriptorFactory.defaultMarker
+                                        (BitmapDescriptorFactory.HUE_GREEN)));
 
-                        if (!success) {
-                            Log.e(null, "Style parsing failed.");
+                         */
+
+
+
+                        try {
+                            // Customize the styling of the base map using a JSON object defined
+                            // in a raw resource file.
+                            boolean success = map.setMapStyle(
+                                    MapStyleOptions.loadRawResourceStyle(
+                                            getActivity(), R.raw.map_style));
+
+                            if (!success) {
+                                Log.e(null, "Style parsing failed.");
+                            }
+                        } catch (Resources.NotFoundException e) {
+                            Log.e(null, "Can't find style. Error: ", e);
                         }
-                    } catch (Resources.NotFoundException e) {
-                        Log.e(null, "Can't find style. Error: ", e);
                     }
-                }
 
-                @Override
-                public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                }
+                    @Override
+                    public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                    }
 
-                @Override
-                public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-                }
+                    @Override
+                    public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+                    }
 
-                @Override
-                public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                }
+                    @Override
+                    public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                    }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-                }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                    }
+                });
             });
         });
-
 
         return root;
     }
 
-    public class IncidenciesInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
-        private final Activity activity;
 
-        public IncidenciesInfoWindowAdapter(Activity activity) {
-            this.activity = activity;
-        }
-
-        @Override
-        public View getInfoWindow(Marker marker) {
-            return null;
-        }
-
-        @Override
-        public View getInfoContents(Marker marker) {
-            View view = activity.getLayoutInflater()
-                    .inflate(R.layout.infoview, null);
-
-            Incidencia incidencia = (Incidencia) marker.getTag();
-
-            ImageView ivProblema = view.findViewById(R.id.iv_problema);
-            TextView tvProblema = view.findViewById(R.id.tvProblema);
-            TextView tvDescripcio = view.findViewById(R.id.tvDescripcio);
-
-            tvProblema.setText(incidencia.getProblema());
-            tvDescripcio.setText(incidencia.getDireccio());
-            Glide.with(activity).load(incidencia.getUrl()).into(ivProblema);
-
-            return view;
-        }
-    }
 
     @Override
     public void onDestroyView() {
