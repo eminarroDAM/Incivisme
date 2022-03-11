@@ -1,6 +1,7 @@
 package org.ecaib.incivisme;
 
 import android.app.Activity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -35,9 +36,10 @@ public class IncidenciesInfoWindowAdapter implements GoogleMap.InfoWindowAdapter
         TextView tvProblema = view.findViewById(R.id.tvProblema);
         TextView tvDescripcio = view.findViewById(R.id.tvDescripcio);
 
+
         tvProblema.setText(incidencia.getProblema());
         tvDescripcio.setText(incidencia.getDireccio());
-        Glide.with(activity).load(incidencia.getUrl()).into(ivProblema);
+        //Glide.with(activity).load(incidencia.getUrl()).into(ivProblema);
 
         return view;
     }

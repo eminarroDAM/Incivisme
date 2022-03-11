@@ -43,13 +43,13 @@ import org.ecaib.incivisme.Incidencia;
 import org.ecaib.incivisme.IncidenciesInfoWindowAdapter;
 import org.ecaib.incivisme.R;
 import org.ecaib.incivisme.SharedViewModel;
-import org.ecaib.incivisme.databinding.FragmentMapaBinding;
+//import org.ecaib.incivisme.databinding.FragmentMapaBinding;
 
 public class MapaFragment extends Fragment {
 
     private MapaViewModel mapaViewModel;
     private SharedViewModel model;
-    private FragmentMapaBinding binding;
+    //private FragmentMapaBinding binding;
     private static final int REQUEST_LOCATION_PERMISSION = 1;
 
 
@@ -58,13 +58,15 @@ public class MapaFragment extends Fragment {
         mapaViewModel =
                 new ViewModelProvider(this).get(MapaViewModel.class);
 
-        binding = FragmentMapaBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        //binding = FragmentMapaBinding.inflate(inflater, container, false);
+        //View root = binding.getRoot();
+
+        View root = inflater.inflate(R.layout.fragment_mapa,container,false);
 
         model = ViewModelProviders.of(getActivity()).get(SharedViewModel.class);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
-            .findFragmentById(R.id.map);
+                .findFragmentById(R.id.map);
 
         model.getUser().observe(getViewLifecycleOwner(), user -> {
             DatabaseReference base = FirebaseDatabase.getInstance().getReference();
@@ -74,10 +76,22 @@ public class MapaFragment extends Fragment {
             DatabaseReference incidencies = uid.child("incidencies");
 
             mapFragment.getMapAsync(map -> {
+                /*
                 if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(requireActivity(), new String[]
                                     {Manifest.permission.ACCESS_FINE_LOCATION},
                             REQUEST_LOCATION_PERMISSION);
+                }
+
+                 */
+                if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
                 }
                 map.setMyLocationEnabled(true);
 
@@ -104,12 +118,13 @@ public class MapaFragment extends Fragment {
                         );
 
 
+
                         Marker marker = map.addMarker(new MarkerOptions()
                                 .title(incidencia.getProblema())
                                 .snippet(incidencia.getDireccio())
                                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                                 .position(aux));
-                        //marker.setTag(incidencia);
+                        marker.setTag(incidencia);
                         map.setInfoWindowAdapter(customInfoWindow);
 
 
@@ -169,6 +184,6 @@ public class MapaFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null;
+        //binding = null;
     }
 }
